@@ -117,6 +117,7 @@ option(VULKAN "Enable the vulkan backend" ${AUTO_VULKAN_BACKEND})
 
 option(EXCEPTION_HANDLING "Enable crashdumps (only works with Windows)" OFF)
 option(IPO "Enable interprocedural optimizations" OFF)
+option(NATIVE_CPU_TUNING "Optimize for the build machine's CPU using -march=native/-mtune=native (binaries may not run on other machines; do not use for builds you redistribute)" OFF)
 option(FUSE_LD "Linker to use" OFF)
 option(SECURITY_COMPILER_FLAGS "Whether to set security-relevant compiler flags like -D_FORTIFY_SOURCE=2 and -fstack-protector-strong" ON)
 option(MACOS_CODESIGN "Whether to sign code when building the DMG on macOS" OFF)
@@ -293,6 +294,11 @@ if(NOT MSVC AND NOT HAIKU)
 
   # Disable exceptions as DDNet does not use them.
   add_cxx_compiler_flag_if_supported(OUR_FLAGS -fno-exceptions)
+
+  if(NATIVE_CPU_TUNING)
+    add_cxx_compiler_flag_if_supported(OUR_FLAGS -march=native)
+    add_cxx_compiler_flag_if_supported(OUR_FLAGS -mtune=native)
+  endif()
 
   # Inaccurate floating point numbers cause problems on mingw-w64-gcc when
   # compiling for x86, might cause problems elsewhere. So don't store floats

@@ -56,8 +56,8 @@ void CGun::Fire()
 	// The closest player (within range) in a team is selected as the target
 	int aTargetIdInTeam[MAX_CLIENTS];
 	bool aIsTarget[MAX_CLIENTS];
-	int aMinDistInTeam[MAX_CLIENTS];
-	std::fill(std::begin(aMinDistInTeam), std::end(aMinDistInTeam), 0);
+	float aMinDistSqInTeam[MAX_CLIENTS];
+	std::fill(std::begin(aMinDistSqInTeam), std::end(aMinDistSqInTeam), 0.0f);
 	std::fill(std::begin(aIsTarget), std::end(aIsTarget), false);
 	std::fill(std::begin(aTargetIdInTeam), std::end(aTargetIdInTeam), -1);
 
@@ -100,10 +100,10 @@ void CGun::Fire()
 			}
 			else
 			{
-				int Distance = distance(pTarget->m_Pos, m_Pos);
-				if(aMinDistInTeam[TargetTeam] == 0 || aMinDistInTeam[TargetTeam] > Distance)
+				float DistanceSq = distance_squared(pTarget->m_Pos, m_Pos);
+				if(aMinDistSqInTeam[TargetTeam] == 0.0f || aMinDistSqInTeam[TargetTeam] > DistanceSq)
 				{
-					aMinDistInTeam[TargetTeam] = Distance;
+					aMinDistSqInTeam[TargetTeam] = DistanceSq;
 					aTargetIdInTeam[TargetTeam] = TargetClientId;
 				}
 			}

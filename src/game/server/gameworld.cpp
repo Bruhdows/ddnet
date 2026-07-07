@@ -64,7 +64,8 @@ int CGameWorld::FindEntities(vec2 Pos, float Radius, CEntity **ppEnts, int Max, 
 	int Num = 0;
 	for(CEntity *pEnt = m_apFirstEntityTypes[Type]; pEnt; pEnt = pEnt->m_pNextTypeEntity)
 	{
-		if(distance(pEnt->m_Pos, Pos) < Radius + pEnt->m_ProximityRadius)
+		const float CheckRadius = Radius + pEnt->m_ProximityRadius;
+		if(distance_squared(pEnt->m_Pos, Pos) < CheckRadius * CheckRadius)
 		{
 			if(ppEnts)
 				ppEnts[Num] = pEnt;
@@ -297,7 +298,7 @@ CCharacter *CGameWorld::IntersectCharacter(vec2 Pos0, vec2 Pos1, float Radius, v
 
 CEntity *CGameWorld::IntersectEntity(vec2 Pos0, vec2 Pos1, float Radius, int Type, vec2 &NewPos, const CEntity *pNotThis, int CollideWith, const CEntity *pThisOnly)
 {
-	float ClosestLen = distance(Pos0, Pos1) * 100.0f;
+	float ClosestLenSq = distance_squared(Pos0, Pos1) * 100.0f * 100.0f;
 	CEntity *pClosest = nullptr;
 
 	CEntity *pEntity = FindFirst(Type);
@@ -315,14 +316,15 @@ CEntity *CGameWorld::IntersectEntity(vec2 Pos0, vec2 Pos1, float Radius, int Typ
 		vec2 IntersectPos;
 		if(closest_point_on_line(Pos0, Pos1, pEntity->m_Pos, IntersectPos))
 		{
-			float Len = distance(pEntity->m_Pos, IntersectPos);
-			if(Len < pEntity->m_ProximityRadius + Radius)
+			const float CheckRadius = pEntity->m_ProximityRadius + Radius;
+			float LenSq = distance_squared(pEntity->m_Pos, IntersectPos);
+			if(LenSq < CheckRadius * CheckRadius)
 			{
-				Len = distance(Pos0, IntersectPos);
-				if(Len < ClosestLen)
+				LenSq = distance_squared(Pos0, IntersectPos);
+				if(LenSq < ClosestLenSq)
 				{
 					NewPos = IntersectPos;
-					ClosestLen = Len;
+					ClosestLenSq = LenSq;
 					pClosest = pEntity;
 				}
 			}
@@ -335,7 +337,7 @@ CEntity *CGameWorld::IntersectEntity(vec2 Pos0, vec2 Pos1, float Radius, int Typ
 CCharacter *CGameWorld::ClosestCharacter(vec2 Pos, float Radius, const CEntity *pNotThis)
 {
 	// Find other players
-	float ClosestRange = Radius * 2;
+	float ClosestRangeSq = (Radius * 2) * (Radius * 2);
 	CCharacter *pClosest = nullptr;
 
 	CCharacter *p = (CCharacter *)FindFirst(ENTTYPE_CHARACTER);
@@ -344,12 +346,13 @@ CCharacter *CGameWorld::ClosestCharacter(vec2 Pos, float Radius, const CEntity *
 		if(p == pNotThis)
 			continue;
 
-		float Len = distance(Pos, p->m_Pos);
-		if(Len < p->m_ProximityRadius + Radius)
+		const float CheckRadius = p->m_ProximityRadius + Radius;
+		const float LenSq = distance_squared(Pos, p->m_Pos);
+		if(LenSq < CheckRadius * CheckRadius)
 		{
-			if(Len < ClosestRange)
+			if(LenSq < ClosestRangeSq)
 			{
-				ClosestRange = Len;
+				ClosestRangeSq = LenSq;
 				pClosest = p;
 			}
 		}
@@ -370,8 +373,8 @@ std::vector<CCharacter *> CGameWorld::IntersectedCharacters(vec2 Pos0, vec2 Pos1
 		vec2 IntersectPos;
 		if(closest_point_on_line(Pos0, Pos1, pChr->m_Pos, IntersectPos))
 		{
-			float Len = distance(pChr->m_Pos, IntersectPos);
-			if(Len < pChr->m_ProximityRadius + Radius)
+			const float CheckRadius = pChr->m_ProximityRadius + Radius;
+			if(distance_squared(pChr->m_Pos, IntersectPos) < CheckRadius * CheckRadius)
 			{
 				vpCharacters.push_back(pChr);
 			}

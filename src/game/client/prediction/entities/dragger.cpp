@@ -37,7 +37,7 @@ void CDragger::LookForPlayersToDrag()
 	// The closest player (within range) in a team is selected as the target
 	int ClosestTargetId = -1;
 	bool CanStillBeTeamTarget = false;
-	int MinDistInTeam = 0;
+	float MinDistSqInTeam = 0.0f;
 
 	for(int i = 0; i < NumPlayersInRange; i++)
 	{
@@ -66,10 +66,10 @@ void CDragger::LookForPlayersToDrag()
 		if(IsReachable)
 		{
 			const int &TargetClientId = pTarget->GetCid();
-			int Distance = distance(pTarget->m_Pos, m_Pos);
-			if(MinDistInTeam == 0 || MinDistInTeam > Distance)
+			float DistanceSq = distance_squared(pTarget->m_Pos, m_Pos);
+			if(MinDistSqInTeam == 0.0f || MinDistSqInTeam > DistanceSq)
 			{
-				MinDistInTeam = Distance;
+				MinDistSqInTeam = DistanceSq;
 				ClosestTargetId = TargetClientId;
 			}
 			if(TargetClientId == m_TargetId)
@@ -117,13 +117,14 @@ void CDragger::DraggerBeamTick()
 		m_IgnoreWalls ?
 			!Collision()->IntersectNoLaserNoWalls(m_Pos, pTarget->m_Pos, nullptr, nullptr) :
 			!Collision()->IntersectNoLaser(m_Pos, pTarget->m_Pos, nullptr, nullptr);
-	if(!IsReachable || distance(pTarget->m_Pos, m_Pos) >= g_Config.m_SvDraggerRange)
+	const float DistanceSq = distance_squared(pTarget->m_Pos, m_Pos);
+	if(!IsReachable || DistanceSq >= (float)g_Config.m_SvDraggerRange * g_Config.m_SvDraggerRange)
 	{
 		DraggerBeamReset();
 		return;
 	}
 	// In the center of the dragger a tee does not experience speed-up
-	else if(distance(pTarget->m_Pos, m_Pos) > 28)
+	else if(DistanceSq > 28 * 28)
 	{
 		pTarget->AddVelocity(normalize(m_Pos - pTarget->m_Pos) * m_Strength);
 	}

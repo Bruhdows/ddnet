@@ -716,7 +716,7 @@ void CCharacter::HandleSkippableTiles(int Index)
 					if(TeeAngle < 0)
 						TeeAngle = 4.0f * std::asin(1.0f) + TeeAngle;
 
-					TeeSpeed = std::sqrt(std::pow(TempVel.x, 2) + std::pow(TempVel.y, 2));
+					TeeSpeed = length(TempVel);
 
 					DiffAngle = SpeederAngle - TeeAngle;
 					SpeedLeft = MaxSpeed / 5.0f - std::cos(DiffAngle) * TeeSpeed;

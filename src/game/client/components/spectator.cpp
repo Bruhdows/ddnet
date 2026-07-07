@@ -647,7 +647,7 @@ void CSpectator::SpectateClosest()
 		CurPosition = vec2(CurCharacter.m_X, CurCharacter.m_Y);
 	}
 
-	int ClosestDistance = std::numeric_limits<int>::max();
+	float ClosestDistanceSq = std::numeric_limits<float>::max();
 	for(int ClientId = 0; ClientId < MAX_CLIENTS; ClientId++)
 	{
 		if(ClientId == SpectatorId || !Snap.m_aCharacters[ClientId].m_Active || !Snap.m_apPlayerInfos[ClientId] || Snap.m_apPlayerInfos[ClientId]->m_Team == TEAM_SPECTATORS)
@@ -657,11 +657,11 @@ void CSpectator::SpectateClosest()
 			continue;
 
 		const CNetObj_Character &MaybeClosestCharacter = Snap.m_aCharacters[ClientId].m_Cur;
-		int Distance = distance(CurPosition, vec2(MaybeClosestCharacter.m_X, MaybeClosestCharacter.m_Y));
-		if(NewSpectatorId == -1 || Distance < ClosestDistance)
+		float DistanceSq = distance_squared(CurPosition, vec2(MaybeClosestCharacter.m_X, MaybeClosestCharacter.m_Y));
+		if(NewSpectatorId == -1 || DistanceSq < ClosestDistanceSq)
 		{
 			NewSpectatorId = ClientId;
-			ClosestDistance = Distance;
+			ClosestDistanceSq = DistanceSq;
 		}
 	}
 	if(NewSpectatorId > -1)

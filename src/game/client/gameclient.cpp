@@ -3392,7 +3392,7 @@ IGameClient *CreateGameClient()
 
 int CGameClient::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 &NewPos2, int OwnId, vec2 *pPlayerPosition)
 {
-	float Distance = 0.0f;
+	float DistanceSq = 0.0f;
 	int ClosestId = -1;
 
 	const CClientData &OwnClientData = m_aClients[OwnId];
@@ -3421,13 +3421,15 @@ int CGameClient::IntersectCharacter(vec2 HookPos, vec2 NewPos, vec2 &NewPos2, in
 		vec2 ClosestPoint;
 		if(closest_point_on_line(HookPos, NewPos, Position, ClosestPoint))
 		{
-			if(distance(Position, ClosestPoint) < CCharacterCore::PhysicalSize() + 2.0f)
+			const float CheckRadius = CCharacterCore::PhysicalSize() + 2.0f;
+			if(distance_squared(Position, ClosestPoint) < CheckRadius * CheckRadius)
 			{
-				if(ClosestId == -1 || distance(HookPos, Position) < Distance)
+				const float DistSq = distance_squared(HookPos, Position);
+				if(ClosestId == -1 || DistSq < DistanceSq)
 				{
 					NewPos2 = ClosestPoint;
 					ClosestId = i;
-					Distance = distance(HookPos, Position);
+					DistanceSq = DistSq;
 					if(pPlayerPosition)
 						*pPlayerPosition = Position;
 				}
@@ -5097,7 +5099,7 @@ bool CGameClient::InitMultiView(int Team)
 			CurPosition.y = CurCharacter.m_Y;
 		}
 
-		int ClosestDistance = std::numeric_limits<int>::max();
+		float ClosestDistanceSq = std::numeric_limits<float>::max();
 		for(int ClientId = 0; ClientId < MAX_CLIENTS; ClientId++)
 		{
 			if(!m_Snap.m_apPlayerInfos[ClientId] || m_Snap.m_apPlayerInfos[ClientId]->m_Team == TEAM_SPECTATORS || m_Teams.Team(ClientId) != m_MultiViewTeam)
@@ -5111,11 +5113,11 @@ bool CGameClient::InitMultiView(int Team)
 			else
 				continue;
 
-			int Distance = distance(CurPosition, PlayerPos);
-			if(NewSpectatorId == -1 || Distance < ClosestDistance)
+			float DistanceSq = distance_squared(CurPosition, PlayerPos);
+			if(NewSpectatorId == -1 || DistanceSq < ClosestDistanceSq)
 			{
 				NewSpectatorId = ClientId;
-				ClosestDistance = Distance;
+				ClosestDistanceSq = DistanceSq;
 			}
 		}
 
