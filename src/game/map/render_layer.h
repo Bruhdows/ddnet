@@ -138,6 +138,9 @@ protected:
 
 private:
 	IGraphics::CTextureHandle m_TextureHandle;
+	// Reused across frames to avoid reallocating on every render call.
+	std::vector<char *> m_vRenderIndexOffsets;
+	std::vector<unsigned int> m_vRenderDrawCounts;
 
 protected:
 	class CTileLayerVisuals : public CRenderComponent
